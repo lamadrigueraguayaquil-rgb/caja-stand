@@ -1,0 +1,16 @@
+REGLA PARA EL DESPACHO — agregar a las reglas de Firestore del proyecto la-madriguera-cb489
+
+Dónde: Firebase Console → Firestore Database → Reglas.
+Pegue este bloque DENTRO de "match /databases/{database}/documents { ... }",
+ANTES de la regla final que bloquea todo (la de  match /{document=**} ).
+No borre ni cambie las demás reglas. Luego pulse "Publicar".
+
+    // Despacho del stand (caja del celular + pantalla de despacho)
+    match /lm_despacho/{sala}/pedidos/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+ADEMÁS (una sola vez): Firebase Console → Authentication → Sign-in method
+→ "Anónimo" → Habilitar → Guardar.
+(La caja y la pantalla de despacho entran como usuarios anónimos; esta regla
+solo les permite leer y escribir los pedidos del despacho, nada del POS.)

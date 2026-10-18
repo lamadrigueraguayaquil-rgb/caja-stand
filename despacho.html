@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d1b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Despacho">
+<link rel="manifest" href="manifest-despacho.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Despacho</title>
+<script src="firebase-config.js"></script>
+<script src="lib/firebase-app-compat.js"></script>
+<script src="lib/firebase-auth-compat.js"></script>
+<script src="lib/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#f3f1ec;--card:#fff;--ink:#1d1b18;--mut:#6d675e;--line:#e2ddd3;--acc:#1f5f8b;--ok:#1e7a46;--warn:#b7791f;--bad:#b42318}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:#1d1b18;color:#fff;flex-wrap:wrap}
+header h1{font-size:19px;margin:0}
+.sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#ffffff1a;border:1px solid #ffffff33;border-radius:99px;padding:6px 12px;font-size:14px;color:#fff}
+.dot{width:11px;height:11px;border-radius:50%;background:#999;display:inline-block}.dot.on{background:#3ccf7a}.dot.pend{background:#f2b437}.dot.off{background:#ef4444}
+#clock{font-variant-numeric:tabular-nums;font-size:18px;font-weight:600}
+main{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.col h2{font-size:17px;margin:2px 4px 10px;display:flex;align-items:center;gap:8px}
+.cnt{display:inline-block;min-width:30px;text-align:center;border-radius:99px;padding:2px 10px;font-size:15px;color:#fff}
+.col.prep .cnt{background:var(--warn)}.col.listo .cnt{background:var(--ok)}
+.card{background:var(--card);border:1px solid var(--line);border-left:8px solid var(--warn);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 0 #0000000d}
+.card.listo{border-left-color:var(--ok);background:#f2faf5}
+.card.nuevo{animation:flash 1.6s ease 2}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 #f2b43700}50%{box-shadow:0 0 0 6px #f2b437aa}}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cod{font-size:34px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.nom{font-size:28px;font-weight:800;margin-top:4px;text-transform:uppercase;word-break:break-word}
+.card.listo .nom{font-size:34px}
+.t{font-size:15px;color:var(--mut);text-align:right;white-space:nowrap}
+.t b{display:block;font-size:20px;color:var(--ink)}
+.t.amar b{color:var(--warn)}.t.rojo b{color:var(--bad)}
+.its{margin:10px 0 0;padding:0;list-style:none;font-size:20px}
+.its li{padding:3px 0;border-top:1px dashed var(--line)}
+.its li b{display:inline-block;min-width:38px}
+.acts{display:flex;gap:8px;margin-top:12px}
+.acts button{flex:1;padding:14px;font-size:18px;font-weight:700}
+.b-listo{background:var(--acc);border-color:var(--acc);color:#fff}
+.b-ent{background:var(--ok);border-color:var(--ok);color:#fff}
+.b-sm{flex:0 0 auto!important;font-size:15px!important;font-weight:500!important;padding:14px 12px!important}
+.vacio{color:var(--mut);padding:30px 10px;text-align:center;font-size:17px;border:2px dashed var(--line);border-radius:14px}
+#ent{grid-column:1/-1}
+#ent summary{cursor:pointer;font-weight:600;color:var(--mut);padding:6px 4px}
+#entList{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:8px}
+.mini{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mini span{font-weight:700}
+#aviso{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+#aviso div{background:#fff;border-radius:18px;padding:26px;max-width:460px;text-align:center}
+#aviso h2{margin:0 0 10px}
+#aviso button{margin-top:16px;padding:16px 26px;font-size:19px;font-weight:700;background:var(--ok);color:#fff;border:0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:60}
+.toast{background:#1d1b18;color:#fff;padding:12px 18px;border-radius:12px;font-size:17px}
+@media (max-width:760px){main{grid-template-columns:1fr}.cod{font-size:28px}.nom{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍜 Despacho</h1>
+  <span class="chip" id="conn"><span class="dot"></span><span>Conectando…</span></span>
+  <span class="sp"></span>
+  <button id="bSonido" class="chip" style="cursor:pointer">🔔 Sonido</button>
+  <span id="clock"></span>
+</header>
+<main>
+  <section class="col prep"><h2>En preparación <span class="cnt" id="cPrep">0</span></h2><div id="lPrep"></div></section>
+  <section class="col listo"><h2>Listos para entregar <span class="cnt" id="cListo">0</span></h2><div id="lListo"></div></section>
+  <details id="ent"><summary>Entregados hoy (<span id="cEnt">0</span>) — tocar para ver o deshacer</summary><div id="entList"></div></details>
+</main>
+<div id="aviso"><div><h2>Pantalla de despacho</h2><p id="avisoTxt">Los pedidos cobrados en la caja aparecen aquí en segundos.<br>Toque el botón para empezar (activa el sonido y mantiene la pantalla encendida).</p><button id="bEmpezar">Empezar</button></div></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const dKey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const fT=ts=>{const d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())};
+function toast(m){const t=document.createElement('div');t.className='toast';t.innerHTML=m;$('#toast').appendChild(t);setTimeout(()=>t.remove(),3000)}
+let col=null,peds=new Map(),vistos=new Set(),primera=true,sonido=true,audio=null,wake=null;
+try{sonido=localStorage.getItem('desp_sonido')!=='0'}catch(e){}
+
+/* ---------- sonido y pantalla encendida ---------- */
+function beep(){if(!sonido||!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=880;o.connect(g);g.connect(audio.destination);
+  const t=audio.currentTime;g.gain.setValueAtTime(0.001,t);g.gain.exponentialRampToValueAtTime(0.4,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+0.35);o.start(t);o.stop(t+0.4);
+  const o2=audio.createOscillator(),g2=audio.createGain();o2.frequency.value=1175;o2.connect(g2);g2.connect(audio.destination);g2.gain.setValueAtTime(0.001,t+0.4);g2.gain.exponentialRampToValueAtTime(0.4,t+0.42);g2.gain.exponentialRampToValueAtTime(0.001,t+0.8);o2.start(t+0.4);o2.stop(t+0.85)}catch(e){}}
+async function pedirWake(){try{if('wakeLock' in navigator){wake=await navigator.wakeLock.request('screen')}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pedirWake()});
+function pintarSonido(){$('#bSonido').textContent=sonido?'🔔 Sonido':'🔕 Silencio'}
+$('#bSonido').onclick=()=>{sonido=!sonido;try{localStorage.setItem('desp_sonido',sonido?'1':'0')}catch(e){}pintarSonido();if(sonido){if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();beep()}};
+$('#bEmpezar').onclick=()=>{try{audio=new (window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}pedirWake();$('#aviso').remove();beep()};
+pintarSonido();
+setInterval(()=>{$('#clock').textContent=fT(Date.now());render()},30000);$('#clock').textContent=fT(Date.now());
+
+/* ---------- conexión ---------- */
+function conn(t,c){$('#conn .dot').className='dot '+c;$('#conn span:last-child').textContent=t}
+function iniciar(){
+  if(!window.FB_CONFIG){conn('Sin configurar','off');$('#avisoTxt').innerHTML='Falta pegar la configuración de Firebase en <b>firebase-config.js</b>. Vea las instrucciones.';return}
+  if(!window.firebase){conn('Sin librería','off');return}
+  const app=firebase.apps.length?firebase.app():firebase.initializeApp(window.FB_CONFIG);
+  const db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
+  firebase.auth().onAuthStateChanged(u=>{
+    if(!u){const login=()=>firebase.auth().signInAnonymously().catch(e=>{conn(e.code==='auth/network-request-failed'?'Sin señal — reintentando':'Error: '+(e.code||'acceso'),'off');setTimeout(login,8000)});login();return}
+    if(col)return;
+    col=db.collection('lm_despacho').doc(window.SALA_DESPACHO||'budokan').collection('pedidos');
+    col.where('dia','==',dKey(Date.now())).onSnapshot({includeMetadataChanges:true},snap=>{
+      let nuevos=0;
+      snap.docChanges().forEach(ch=>{const d=ch.doc.data();d.id=ch.doc.id;
+        if(ch.type==='removed'){peds.delete(d.id);return}
+        const prev=peds.get(d.id);peds.set(d.id,d);
+        if(!primera&&!vistos.has(d.id)&&d.estado==='pendiente'){nuevos++}
+        if(prev&&prev.estado!=='anulado'&&d.estado==='anulado')toast(`Pedido <b>${esc(d.code)}</b> ${esc(d.nombre)} fue ANULADO en caja`);
+        vistos.add(d.id)});
+      primera=false;
+      if(snap.metadata.hasPendingWrites)conn('Guardando…','pend');else if(snap.metadata.fromCache)conn('Sin señal — reintentando','pend');else conn('Conectado','on');
+      if(nuevos){beep();if(navigator.vibrate)navigator.vibrate(200)}
+      render(nuevos);
+    },err=>conn('Error: '+(err.code||'lectura'),'off'));
+  });
+}
+function cambiar(id,estado){const p=peds.get(id);if(!p||!col)return;const o={estado};o['t_'+estado]=Date.now();
+  p.estado=estado;render();col.doc(id).set(o,{merge:true}).catch(e=>toast('No se pudo guardar: '+esc(e.code||e.message)))}
+
+/* ---------- pantalla ---------- */
+let ultimosNuevos=new Set();
+function minutos(ts){return Math.max(0,Math.floor((Date.now()-ts)/60000))}
+function card(p,listo){const m=minutos(p.ts);const cls=m>=15?'rojo':m>=8?'amar':'';
+  return `<div class="card ${listo?'listo':''} ${ultimosNuevos.has(p.id)?'nuevo':''}" data-id="${esc(p.id)}">
+    <div class="top"><div><div class="cod">${esc(p.code)}</div><div class="nom">${esc(p.nombre||'(sin nombre)')}</div></div>
+    <div class="t ${listo?'':cls}"><b>${m} min</b>${fT(p.ts)}${p.cajaNom?'<br>'+esc(p.cajaNom):''}</div></div>
+    <ul class="its">${(p.items||[]).map(i=>`<li><b>${i.c}×</b> ${esc(i.n)}</li>`).join('')}</ul>
+    <div class="acts">${listo?`<button class="b-sm" data-a="pendiente">↩ Volver</button><button class="b-ent" data-a="entregado">✓ Entregado</button>`
+      :`<button class="b-listo" data-a="listo">Listo</button><button class="b-sm" data-a="entregado">Entregar directo</button>`}</div></div>`}
+function render(nuevos){
+  const all=[...peds.values()].filter(p=>p.dia===dKey(Date.now())||!p.dia);
+  const prep=all.filter(p=>p.estado==='pendiente').sort((a,b)=>a.ts-b.ts);
+  const listos=all.filter(p=>p.estado==='listo').sort((a,b)=>(a.t_listo||a.ts)-(b.t_listo||b.ts));
+  const ent=all.filter(p=>p.estado==='entregado').sort((a,b)=>(b.t_entregado||b.ts)-(a.t_entregado||a.ts));
+  if(nuevos){ultimosNuevos=new Set(prep.slice(-nuevos).map(p=>p.id));setTimeout(()=>{ultimosNuevos=new Set()},4000)}
+  $('#cPrep').textContent=prep.length;$('#cListo').textContent=listos.length;$('#cEnt').textContent=ent.length;
+  $('#lPrep').innerHTML=prep.map(p=>card(p,false)).join('')||'<div class="vacio">Sin pedidos en preparación</div>';
+  $('#lListo').innerHTML=listos.map(p=>card(p,true)).join('')||'<div class="vacio">Nada listo por entregar</div>';
+  $('#entList').innerHTML=ent.slice(0,60).map(p=>`<div class="mini" data-id="${esc(p.id)}"><div><span>${esc(p.code)}</span> ${esc(p.nombre)}</div><button data-a="listo">Deshacer</button></div>`).join('')||'<div class="vacio">—</div>';
+  document.title=(prep.length?`(${prep.length}) `:'')+'Despacho';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const c=b.closest('[data-id]');if(c)cambiar(c.dataset.id,b.dataset.a)});
+window.addEventListener('load',iniciar);
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+render();
+</script>
+</body>
+</html>

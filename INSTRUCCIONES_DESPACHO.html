@@ -1,0 +1,41 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pantalla de despacho — Instrucciones</title>
+<style>body{font:16px/1.55 -apple-system,BlinkMacSystemFont,sans-serif;max-width:760px;margin:0 auto;padding:24px 16px;color:#1d1b18;background:#faf8f4}
+h1{font-size:24px;margin:0 0 6px}h2{font-size:18px;margin:26px 0 8px;border-bottom:2px solid #e2ddd3;padding-bottom:4px}
+code,pre{background:#eee9df;border-radius:6px}code{padding:2px 6px}pre{padding:10px;overflow:auto;font-size:14px}.box{background:#fdf3e1;border:1px solid #efd39b;border-radius:12px;padding:12px 16px;margin:12px 0}li{margin:6px 0}</style></head><body>
+<h1>Pantalla de despacho</h1>
+<p>Usted cobra en el celular (en la fila) y el pedido aparece en segundos en la tablet del counter, con número, nombre y productos. El counter marca <b>Listo</b> y luego <b>Entregado</b>; la caja ve esos cambios en su pestaña Pedidos. Funciona con <b>datos móviles</b>; si la señal se cae, los pedidos esperan y se envían solos al volver.</p>
+
+<h2>1. Configurar Firebase (una sola vez, ~5 minutos)</h2>
+<ol>
+<li><b>Activar acceso anónimo:</b> Firebase Console (proyecto la-madriguera-cb489) → Authentication → Sign-in method → <b>Anónimo</b> → Habilitar → Guardar.</li>
+<li><b>Regla de Firestore:</b> Firestore Database → Reglas → pegue el bloque del archivo <code>REGLAS_FIRESTORE_despacho.txt</code> antes de la regla final que bloquea todo → <b>Publicar</b>. No toque las demás reglas.</li>
+<li><b>Configuración web:</b> Configuración del proyecto (⚙️) → Tus apps → app web → <i>Configuración del SDK</i> → <i>Config</i>. Copie el bloque <code>{ apiKey: …, appId: … }</code>.
+ Abra <code>firebase-config.js</code> y reemplace <code>window.FB_CONFIG = null;</code> por <code>window.FB_CONFIG = { …lo copiado… };</code>
+ <div class="box">Si prefiere, pegue ese bloque en el chat y se le devuelve el archivo listo.</div></li>
+</ol>
+
+<h2>2. Subir a GitHub</h2>
+<ol>
+<li>Descomprima el zip. En su repositorio: <b>Add file → Upload files</b>.</li>
+<li>Arrastre <b>todo el contenido</b> de la carpeta, incluida la carpeta <code>lib</code> (Chrome permite arrastrar carpetas). <b>Commit changes</b>.</li>
+<li>Espere 1–2 minutos.</li>
+</ol>
+
+<h2>3. En los equipos (con internet)</h2>
+<ul>
+<li><b>Celular de caja:</b> abra el ícono “Caja Stand” (ciérrelo y ábralo una vez más para tomar la versión nueva). Arriba debe decir <b>“Despacho ✓”</b>.</li>
+<li><b>Tablet del counter:</b> abra <code>https://SU-USUARIO.github.io/SU-REPO/despacho.html</code> y agréguela a la pantalla de inicio (iPad: Compartir → Agregar a inicio; Android: ⋮ → Instalar). Toque <b>Empezar</b> (activa sonido y deja la pantalla encendida). Debe decir <b>“Conectado”</b>.</li>
+<li>Prueba: cobre un pedido de prueba en el celular y verifique que suene y aparezca en la tablet; márquelo Listo → Entregado. Luego anúlelo en la caja.</li>
+</ul>
+
+<h2>4. Cómo se usa en el evento</h2>
+<ul>
+<li><b>Columna izquierda — En preparación:</b> pedidos en orden de llegada, con minutos de espera (ámbar desde 8 min, rojo desde 15). Al tenerlo listo: <b>Listo</b>.</li>
+<li><b>Columna derecha — Listos para entregar:</b> nombre en grande para llamar al cliente. Al entregar: <b>Entregado</b>. “Volver” lo regresa a preparación.</li>
+<li><b>Entregados hoy</b> (abajo): permite deshacer una entrega marcada por error.</li>
+<li>Si la caja anula un pedido, desaparece de la tablet y sale un aviso.</li>
+<li>Indicadores: “Despacho ✓” en la caja y “Conectado” en la tablet. “Sin señal — reintentando” significa que no hay datos: siga vendiendo; todo se envía al volver la señal.</li>
+<li>Puede abrir la pantalla de despacho en más de un equipo a la vez (por ejemplo, cocina y entrega).</li>
+</ul>
+</body></html>

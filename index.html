@@ -10,6 +10,10 @@
 <meta name="apple-mobile-web-app-title" content="Caja Stand">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="firebase-config.js"></script>
+<script src="lib/firebase-app-compat.js"></script>
+<script src="lib/firebase-auth-compat.js"></script>
+<script src="lib/firebase-firestore-compat.js"></script>
 <title>Caja Stand</title>
 <style>
 :root{
@@ -209,6 +213,7 @@ nav button i{font-style:normal;margin-right:6px}
   <span class="sp"></span>
   <button class="chip" id="hDev" title="Cambiar caja / cajero"></button>
   <span class="chip" id="hSync" title="Clic para descargar un respaldo ahora" style="cursor:pointer"><span class="dot"></span><span>…</span></span>
+  <span class="chip" id="hDesp"><span class="dot"></span><span>Despacho…</span></span>
   <span class="chip" id="hClock"></span>
 </header>
 <nav id="nav">
@@ -383,6 +388,7 @@ function D(evs=events){
     else if(e.tipo==='estado')estados.set(e.ref,e.estado);
   }
   const s=(a,b)=>a.ts-b.ts;ventas.sort(s);movs.sort(s);aper.sort(s);cortes.sort(s);
+  if(typeof SY!=='undefined')for(const [k,e] of SY.est)if(e!=='anulado')estados.set(k,e);
   return {anul,ventas,movs,aper,cortes,cierres,stock,estados};
 }
 function sesionAbierta(d,caja){const a=d.aper.filter(x=>x.caja===caja&&!d.cierres.has(x.id));return a[a.length-1]||null}
@@ -505,6 +511,7 @@ function cobrar(){
   const hoy=dKey(Date.now());const num=d.ventas.filter(v=>v.caja===dev.caja&&dKey(v.ts)===hoy).length+1;
   const v=addEvent('venta',{sesion:ses.id,num,pref:prefCaja(dev.caja),items:cart.map(c=>({...c})),total:tot,metodo:m.id,efe:!!m.efectivo,recibido:rec,vuelto:r2(rec-tot),nota:cli});
   if(cfg.ticket.imprimir)imprimirTicket(v);
+  enviarDespacho(v);
   toast(`<span style="font-size:15px;opacity:.85">Pedido ${codigo(v)}${cli?' · '+esc(cli):''}</span><br>`+(m.efectivo?`Vuelto <b>${money(rec-tot)}</b>`:`${esc(m.nombre)} ${money(tot)}`),'big');
   cart=[];recibido='';nota='';metSel=(cfg.metodos.find(x=>x.efectivo)||cfg.metodos[0]||{}).id;cerrarCarro();renderVender();
 }
@@ -557,7 +564,7 @@ function anular(id,que){
     m.querySelector('[data-ok]').onclick=async()=>{
       const mot=m.querySelector('#aMot').value.trim(),pin=m.querySelector('#aPin').value;if(!mot){toast('Indique el motivo','err');return}
       if(!checkPin(pin)){toast('PIN incorrecto','err');return}
-      addEvent('anul',{ref:id,motivo:mot});close();toast('Registro anulado');
+      addEvent('anul',{ref:id,motivo:mot});if(byId.get(id)&&byId.get(id).tipo==='venta')despEstado(id,'anulado');close();toast('Registro anulado');
     };
   });
 }
@@ -668,7 +675,7 @@ function descargar(nombre,contenido,tipo){const b=new Blob([contenido],{type:tip
 /* ================== PEDIDOS POR ENTREGAR ================== */
 $('#pBuscar').oninput=renderPedidos;$('#pVerEnt').onchange=renderPedidos;
 function pedidosPend(d){return d.ventas.filter(v=>v.caja===dev.caja&&v.dev===dev.id&&!d.anul.has(v.id)&&(d.estados.get(v.id)||'pendiente')!=='entregado'&&Date.now()-v.ts<36*3600e3)}
-function setEstado(id,estado){addEvent('estado',{ref:id,estado});}
+function setEstado(id,estado){addEvent('estado',{ref:id,estado});despEstado(id,estado);}
 function renderBadge(){const n=pedidosPend(D()).length;const b=$('#pedBadge');b.textContent=n;b.style.display=n?'':'none'}
 function minDesde(ts){const m=Math.floor((Date.now()-ts)/60000);return m<1?'recién':m+' min'}
 function cardPed(v,est){
@@ -915,6 +922,41 @@ async function saveCfg(){
   if(c.productos.some(p=>!(p.precio>0))&&!confirm('Hay productos con precio $0. ¿Guardar igual?'))return;
   cfg=normCfg(c);draft=clone(cfg);draftDirty=false;persist();toast('Cambios guardados');onData();renderAdmin()
 }
+
+/* ================== DESPACHO (sincronización por datos móviles) ================== */
+const SY={ok:false,col:null,est:new Map(),pend:false,cache:true,err:'',env:new Set(LS.get('despEnv',[]))};
+function despDoc(v){return {id:v.id,code:codigo(v),nombre:v.nota||'',items:v.items.map(i=>({n:i.nombre,c:i.cant})),total:v.total,caja:v.caja,cajaNom:cajaNom(v.caja),cajero:v.cajero||'',ts:v.ts,dia:dKey(v.ts),estado:'pendiente'}}
+function enviarDespacho(v){if(!SY.col||SY.env.has(v.id))return;SY.col.doc(v.id).set(despDoc(v)).catch(e=>console.warn('despacho',e));SY.env.add(v.id);LS.set('despEnv',[...SY.env].slice(-3000));renderDesp()}
+function despEstado(id,estado){if(!SY.col)return;const o={estado};o['t_'+estado]=Date.now();SY.col.doc(id).set(o,{merge:true}).catch(()=>{})}
+function reenviar(){const d=D();const hoy=dKey(Date.now());d.ventas.filter(v=>v.dev===dev.id&&dKey(v.ts)===hoy&&!d.anul.has(v.id)).forEach(enviarDespacho)}
+function initDespacho(){
+  if(!window.FB_CONFIG||!window.firebase){renderDesp();return}
+  try{
+    const app=firebase.apps.length?firebase.app():firebase.initializeApp(window.FB_CONFIG);
+    const db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
+    firebase.auth().onAuthStateChanged(u=>{
+      if(!u){const login=()=>firebase.auth().signInAnonymously().catch(e=>{SY.err=(e&&e.code)==='auth/network-request-failed'?'sin señal, reintentando':(e&&e.code)||'auth';renderDesp();setTimeout(login,8000)});login();return}
+      SY.err='';
+      if(SY.ok)return;SY.ok=true;
+      SY.col=db.collection('lm_despacho').doc(window.SALA_DESPACHO||'budokan').collection('pedidos');
+      SY.col.where('dia','==',dKey(Date.now())).onSnapshot({includeMetadataChanges:true},snap=>{
+        let ch=false;snap.forEach(doc=>{const e=doc.data().estado;if(e&&SY.est.get(doc.id)!==e){SY.est.set(doc.id,e);ch=true}});
+        SY.pend=snap.metadata.hasPendingWrites;SY.cache=snap.metadata.fromCache;SY.err='';renderDesp();if(ch)onData();
+      },err=>{SY.err=(err&&err.code)||'error';renderDesp()});
+      reenviar();renderDesp();
+    });
+  }catch(e){SY.err='init';renderDesp()}
+}
+function renderDesp(){const el=$('#hDesp');if(!el)return;let t,c;
+  if(!window.FB_CONFIG){t='Despacho: sin configurar';c='off'}
+  else if(!window.firebase){t='Despacho: sin librería';c='off'}
+  else if(SY.err){t=SY.err.startsWith('sin señal')?'Despacho: '+SY.err:'Despacho: error '+SY.err;c=SY.err.startsWith('sin señal')?'pend':'off'}
+  else if(!SY.ok){t='Despacho: conectando…';c='pend'}
+  else if(SY.pend){t='Despacho: enviando…';c='pend'}
+  else if(SY.cache){t='Despacho: sin señal';c='pend'}
+  else{t='Despacho ✓';c='on'}
+  el.querySelector('.dot').className='dot '+c;el.querySelector('span:last-child').textContent=t;el.title=t}
+window.addEventListener('load',initDespacho);
 
 /* ================== NAVEGACIÓN ================== */
 $$('#nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;$$('#nav button').forEach(x=>x.classList.toggle('on',x===b));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab));renderTab(true)});
