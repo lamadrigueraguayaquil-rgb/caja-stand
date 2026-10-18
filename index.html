@@ -172,6 +172,7 @@ nav button i{font-style:normal;margin-right:6px}
   nav button.on{background:#ffffff1f;color:#fff;font-weight:600}
   nav .badge{position:absolute;top:2px;right:6px;margin:0;font-size:10px;padding:0 5px}
   .card{padding:12px;border-radius:12px}
+  .pos>div{min-width:0}
   .cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   .cats button{white-space:nowrap}
   .prods{grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:8px}
@@ -323,19 +324,14 @@ const DEN=[100,50,20,10,5,1,0.5,0.25,0.1,0.05,0.01];
 
 /* ================== ESTADO LOCAL (caja independiente) ================== */
 const DEFAULT_CFG={pin:'1234',evento:{nombre:'Stand de Comidas - Budokan',lugar:'',fechas:''},
-  productos:[
-   {id:'p1',nombre:'Onigiri de atún',precio:3,costo:0.5,cat:'Comida',color:'#2f6f4f',activo:true,stockControl:false,stockInicial:0},
-   {id:'p2',nombre:'Taiyaki x3',precio:5,costo:1.05,cat:'Comida',color:'#b5651d',activo:true,stockControl:false,stockInicial:0},
-   {id:'p3',nombre:'Dumplings x8',precio:5,costo:2.56,cat:'Comida',color:'#8a3b2e',activo:true,stockControl:false,stockInicial:0},
-   {id:'p4',nombre:'Bao',precio:2,costo:0.8,cat:'Comida',color:'#6b4c9a',activo:true,stockControl:false,stockInicial:0},
-   {id:'p5',nombre:'Granizado',precio:2,costo:0.3,cat:'Bebidas',color:'#1f6fa8',activo:true,stockControl:false,stockInicial:0},
-   {id:'p6',nombre:'Limonada botella',precio:1.5,costo:0.35,cat:'Bebidas',color:'#a39114',activo:true,stockControl:false,stockInicial:0},
-   {id:'p7',nombre:'Limonada de café',precio:3,costo:0.9,cat:'Bebidas',color:'#5a3e2b',activo:true,stockControl:false,stockInicial:0}],
+  productos:[{"id": "b01", "nombre": "Milk Tea Chocolate", "precio": 5, "costo": 0, "cat": "Milk Tea", "color": "#6b4c9a", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b02", "nombre": "Milk Tea Fresa", "precio": 5, "costo": 0, "cat": "Milk Tea", "color": "#6b4c9a", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b03", "nombre": "Milk Tea Chicle", "precio": 5, "costo": 0, "cat": "Milk Tea", "color": "#6b4c9a", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b04", "nombre": "Gomu Gomu (taro)", "precio": 5, "costo": 0, "cat": "Milk Tea", "color": "#6b4c9a", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b05", "nombre": "Mera Mera (vainilla y caramelo)", "precio": 6, "costo": 0, "cat": "Especiales", "color": "#c2185b", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b06", "nombre": "Hanna (cereza)", "precio": 6, "costo": 0, "cat": "Especiales", "color": "#c2185b", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b07", "nombre": "Luffy (piña y coco)", "precio": 6, "costo": 0, "cat": "Frutas del Diablo", "color": "#d84315", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b08", "nombre": "Zoro (mango)", "precio": 6, "costo": 0, "cat": "Frutas del Diablo", "color": "#d84315", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b09", "nombre": "Shanks (frutos rojos)", "precio": 6, "costo": 0, "cat": "Frutas del Diablo", "color": "#d84315", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b10", "nombre": "Dumplings del Grand Line x6", "precio": 5, "costo": 1.92, "cat": "Comida", "color": "#2f6f4f", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b11", "nombre": "Bao del Capitán", "precio": 2, "costo": 0.8, "cat": "Comida", "color": "#2f6f4f", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b12", "nombre": "Onigiri", "precio": 2.5, "costo": 0.5, "cat": "Comida", "color": "#2f6f4f", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b13", "nombre": "Taiyaki Ice Cream (vainilla)", "precio": 4, "costo": 0, "cat": "Postres", "color": "#1f6fa8", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b15", "nombre": "Dorayaki", "precio": 2.5, "costo": 0, "cat": "Postres", "color": "#1f6fa8", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b16", "nombre": "Cono de helado", "precio": 1, "costo": 0, "cat": "Postres", "color": "#1f6fa8", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b19", "nombre": "Galletas", "precio": 1, "costo": 0, "cat": "Postres", "color": "#1f6fa8", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b17", "nombre": "Limonada de maracuyá", "precio": 1.5, "costo": 0.35, "cat": "Bebidas", "color": "#a39114", "activo": true, "stockControl": false, "stockInicial": 0}, {"id": "b18", "nombre": "Limonada de café", "precio": 4, "costo": 0.9, "cat": "Bebidas", "color": "#a39114", "activo": true, "stockControl": false, "stockInicial": 0}],
   cajas:[{id:'c1',nombre:'Caja 1',prefijo:'A'},{id:'c2',nombre:'Caja 2',prefijo:'B'}],cajeros:['Mafer','Cajero 2','Cajero 3'],
   ticket:{imprimir:false,copias:'cliente+cocina',ancho:'80',nombreObligatorio:true,pedidos:true,mensaje:'¡Gracias! Retire su pedido cuando escuche su nombre.'},
   metodos:[{id:'efectivo',nombre:'Efectivo',efectivo:true},{id:'transferencia',nombre:'Transferencia',efectivo:false},{id:'tarjeta',nombre:'Tarjeta',efectivo:false},{id:'deuna',nombre:'DeUna',efectivo:false}],
   catGastos:['Insumos','Hielo','Gas','Desechables','Transporte','Personal','Otros']};
 let cfg=LS.get('cfg',null)||clone(DEFAULT_CFG);
+const MENU_VER='budokan-3';let menuNuevo=false;
+if(LS.get('menuVer','')!==MENU_VER){if(LS.get('cfg',null)){cfg.productos=clone(DEFAULT_CFG.productos);menuNuevo=true}LS.set('menuVer',MENU_VER);LS.set('cfg',cfg)}
 function normCfg(c){c.ticket=Object.assign(clone(DEFAULT_CFG.ticket),c.ticket||{});const L='ABCDEFGHIJ';(c.cajas||[]).forEach((x,i)=>{if(!x.prefijo)x.prefijo=L[i]||String(i+1)});return c}
 normCfg(cfg);
 let events=LS.get('events',[]);
@@ -934,7 +930,7 @@ function onData(){renderHeader();renderBadge();
 $('#hSync').onclick=()=>descargarRespaldo();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-setClase('gasto');renderBadge();renderHeader();renderTab(true);renderSync();
+setClase('gasto');renderBadge();renderHeader();if(menuNuevo)setTimeout(()=>toast('Menú del Budokan actualizado ('+cfg.productos.length+' productos)'),800);renderTab(true);renderSync();
 if(!dev.caja)setTimeout(devModal,600);
 </script>
 </body>
