@@ -6,7 +6,7 @@
 // ============================================================
 // ---- PEGUE AQUI ----
 const firebaseConfig = {
-  apiKey: "AIza.....",
+  apiKey: "AIzaSyBzAwD0HBDhWe7u_1o1toLPJLhiduHVJyo",
   authDomain: "la-madriguera-cb489.firebaseapp.com",
   projectId: "la-madriguera-cb489",
   storageBucket: "la-madriguera-cb489.firebasestorage.app",
