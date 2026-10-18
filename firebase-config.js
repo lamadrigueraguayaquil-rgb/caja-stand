@@ -5,7 +5,10 @@
 //  Deje las comillas.
 // ============================================================
 window.FB_CONFIG = {
-  apiKey: "PEGAR_AQUI_LA_APIKEY",
+  apiKey: "// Despacho del stand (caja del celular + pantalla de despacho)
+    match /lm_despacho/{sala}/pedidos/{id} {
+      allow read, write: if request.auth != null;
+    }",
   authDomain: "la-madriguera-cb489.firebaseapp.com",
   projectId: "la-madriguera-cb489",
   storageBucket: "la-madriguera-cb489.firebasestorage.app",
